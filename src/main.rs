@@ -1,15 +1,14 @@
-use crossterm::{
-    execute,
-    style::{Color, Print, ResetColor, SetForegroundColor},
-};
+mod utils;
+
 use rust_decimal::prelude::ToPrimitive;
 use rust_decimal::Decimal;
 use std::io::{self, Write};
+use crossterm::style::Color;
 
 fn main() -> io::Result<()> {
-    println_colored("欢迎使用 r-calc 计算器！", Color::Green)?;
-    println_colored("请输入算式，支持 +、-、*、/、%、**（幂运算）和括号（兼容中文括号）", Color::Yellow)?;
-    println_colored("输入 'q' 退出程序", Color::Yellow)?;
+    utils::print_utils::println_colored("欢迎使用 r-calc 计算器！", Color::Green)?;
+    utils::print_utils::println_colored("请输入算式，支持 +、-、*、/、%、**（幂运算）和括号（兼容中文括号）", Color::Yellow)?;
+    utils::print_utils::println_colored("输入 'q' 退出程序", Color::Yellow)?;
 
     loop {
         print!("> ");
@@ -23,42 +22,21 @@ fn main() -> io::Result<()> {
         let input = input.trim();
 
         if input == "q" {
-            println_colored("再见！", Color::Green)?;
+            utils::print_utils::println_colored("再见！", Color::Green)?;
             break;
         }
 
         // 计算表达式
         match evaluate_expression(input) {
             Ok(result) => {
-                print_colored("结果: ", Color::Blue)?;
-                println_colored(&result.to_string(), Color::White)?;
+                utils::print_utils::print_colored("结果: ", Color::Blue)?;
+                utils::print_utils::println_colored(&result.to_string(), Color::White)?;
             }
-            Err(e) => println_colored(&format!("错误: {}", e), Color::Red)?,
+            Err(e) => utils::print_utils::println_colored(&format!("错误: {}", e), Color::Red)?,
         }
     }
 
     Ok(())
-}
-
-// 打印带颜色的文本并换行
-fn println_colored(text: &str, color: Color) -> io::Result<()> {
-    execute!(
-        io::stdout(),
-        SetForegroundColor(color),
-        Print(text),
-        ResetColor,
-        Print("\n")
-    )
-}
-
-// 打印带颜色的文本
-fn print_colored(text: &str, color: Color) -> io::Result<()> {
-    execute!(
-        io::stdout(),
-        SetForegroundColor(color),
-        Print(text),
-        ResetColor
-    )
 }
 
 // 计算表达式的值
