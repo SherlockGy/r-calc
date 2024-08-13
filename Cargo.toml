@@ -1,0 +1,12 @@
+[package]
+name = "r-calc"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "r-calc"
+path = "src/main.rs"
+
+[dependencies]
+crossterm = "0.28.1"
+rust_decimal = "1.35.0"
