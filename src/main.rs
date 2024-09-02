@@ -4,35 +4,51 @@ use rust_decimal::prelude::ToPrimitive;
 use rust_decimal::Decimal;
 use std::io::{self, Write};
 use crossterm::style::Color;
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
+use rustyline::history::DefaultHistory;
 
 fn main() -> io::Result<()> {
     utils::print_utils::println_colored("欢迎使用 r-calc 计算器！", Color::Green)?;
     utils::print_utils::println_colored("请输入算式，支持 +、-、*、/、%、**（幂运算）和括号（兼容中文括号）", Color::Yellow)?;
     utils::print_utils::println_colored("输入 'q' 退出程序", Color::Yellow)?;
 
+    let mut rl = Editor::<(), DefaultHistory>::new().expect("Failed to create Rustyline editor");
+
     loop {
-        print!("> ");
+        let readline = rl.readline("> ");
+        match readline {
+            Ok(line) => {
+                rl.add_history_entry(line.as_str());
 
-        // 刷新输出缓冲区，确保所有缓冲的输出数据立即写入到控制台。
-        io::stdout().flush()?;
+                let input = line.trim();
 
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
+                if input == "q" {
+                    utils::print_utils::println_colored("再见！", Color::Green)?;
+                    break;
+                }
 
-        let input = input.trim();
-
-        if input == "q" {
-            utils::print_utils::println_colored("再见！", Color::Green)?;
-            break;
-        }
-
-        // 计算表达式
-        match evaluate_expression(input) {
-            Ok(result) => {
-                utils::print_utils::print_colored("结果: ", Color::Blue)?;
-                utils::print_utils::println_colored(&result.to_string(), Color::White)?;
+                // 计算表达式
+                match evaluate_expression(input) {
+                    Ok(result) => {
+                        utils::print_utils::print_colored("结果: ", Color::Blue)?;
+                        utils::print_utils::println_colored(&result.to_string(), Color::White)?;
+                    }
+                    Err(e) => utils::print_utils::println_colored(&format!("错误: {}", e), Color::Red)?,
+                }
             }
-            Err(e) => utils::print_utils::println_colored(&format!("错误: {}", e), Color::Red)?,
+            Err(ReadlineError::Interrupted) => {
+                println!("CTRL-C");
+                break;
+            }
+            Err(ReadlineError::Eof) => {
+                println!("CTRL-D");
+                break;
+            }
+            Err(err) => {
+                println!("Error: {:?}", err);
+                break;
+            }
         }
     }
 
